@@ -6,6 +6,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using PokeWebApiApp.Models;
+using System;
+using Microsoft.Extensions.Logging;
 
 namespace PokeWebApiApp
 {
@@ -21,8 +23,15 @@ namespace PokeWebApiApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var serverVersion = new MySqlServerVersion(new System.Version(8, 0, 27));
+            var connection = Configuration["ConnectionMySql:MySqlConnectionString"];
+
             services.AddControllers();
-            services.AddDbContext<PokemonContext>(opt => opt.UseInMemoryDatabase("PokemonList"));
+            services.AddDbContext<PokemonContext>(opt => opt.UseMySql(connection, serverVersion)
+            //Configurações de Log (mensagem de erro em sequência)
+            .LogTo(Console.WriteLine, LogLevel.Information)
+            .EnableDetailedErrors()
+            ); 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "PokeWebApiApp", Version = "v1" });
